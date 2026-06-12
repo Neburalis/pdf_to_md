@@ -7,7 +7,7 @@ from pathlib import Path
 from . import logger
 
 
-_LLM_HELP_TEXT = """# pdf-to-md — справка для LLM
+_HELP_TEXT = """# pdf-to-md — справка для LLM
 
 ## Что делает
 Конвертирует PDF в Markdown через локальные LLM-модели (GGUF) с GPU inference (CUDA).
@@ -47,7 +47,7 @@ RTX 4070 Ti (12 ГБ VRAM). Vision: ~6.2 ГБ. Cleaning: ~9.3 ГБ. Послед
 ### pdf-to-md clear-cache
   --cache-dir DIR           (default: .pdf_to_md_cache)
 
-### pdf-to-md llm-help
+### pdf-to-md help
   (эта справка)
 
 ## Кэш
@@ -57,7 +57,6 @@ RTX 4070 Ti (12 ГБ VRAM). Vision: ~6.2 ГБ. Cleaning: ~9.3 ГБ. Послед
 
 ## Известные ограничения
 - Cleaning временно отключён (--no-clean) — промпт gemma удаляет разделители страниц
-- Detect hallucinations: MODEL захардкожен в скрипте, переопределяется через --text-model
 """
 
 
@@ -256,7 +255,7 @@ def _add_clear_cache_parser(subparsers: argparse._SubParsersAction) -> None:
 
 
 def _cmd_convert(args: argparse.Namespace) -> None:
-    if not args.input.exists():
+    if not args.input.is_file():
         _fail(f"Error: file not found: {args.input}")
     if args.input.suffix.lower() != ".pdf":
         _fail(f"Error: input must be a .pdf file, got: {args.input.suffix}")
@@ -321,6 +320,9 @@ def _cmd_detect(args: argparse.Namespace) -> None:
             "No .md files found in output/. Pass file paths as arguments."
         )
         return
+
+    if not args.no_gemma and not Path(args.text_model).is_file():
+        _fail(f"Error: text model file not found: {args.text_model}")
 
     llm = None if args.no_gemma else load_model(args.text_model)
     args.report.parent.mkdir(parents=True, exist_ok=True)
@@ -450,9 +452,9 @@ def _cmd_clear_cache(args: argparse.Namespace) -> None:
     )
 
 
-def _cmd_llm_help(args: argparse.Namespace) -> None:
+def _cmd_help(args: argparse.Namespace) -> None:
     del args
-    _console_logger().info(_LLM_HELP_TEXT)
+    _console_logger().info(_HELP_TEXT)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -465,11 +467,11 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_detect_parser(subparsers)
     _add_clear_cache_parser(subparsers)
 
-    llm_help = subparsers.add_parser(
-        "llm-help",
+    help_parser = subparsers.add_parser(
+        "help",
         help="Show project usage notes for LLM agents",
     )
-    llm_help.set_defaults(handler=_cmd_llm_help)
+    help_parser.set_defaults(handler=_cmd_help)
     return parser
 
 
