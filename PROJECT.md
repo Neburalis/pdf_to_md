@@ -30,7 +30,7 @@
 
 ```powershell
 # Тест (6 страниц)
-.venv\Scripts\python.exe -m pdf_to_md `
+.venv\Scripts\python.exe -m pdf_to_md convert `
   pdf\lektsii-po-matematicheskomu-analizu-v-3-ch-chast-1-vvedenie-v-matematicheskij-analiz.pdf `
   output\chast-1.md `
   --vision-model "models\Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf" `
@@ -39,7 +39,7 @@
   --pages 1-6
 
 # Полная конвертация одной части (--no-clean, кэш пропускает готовые страницы)
-.venv\Scripts\python.exe -m pdf_to_md `
+.venv\Scripts\python.exe -m pdf_to_md convert `
   pdf\lektsii-po-matematicheskomu-analizu-v-3-ch-chast-1-vvedenie-v-matematicheskij-analiz.pdf `
   output\chast-1.md `
   --vision-model "models\Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf" `
@@ -63,10 +63,10 @@
 
 ## Инструменты контроля качества
 
-| Скрипт | Назначение |
-|--------|-----------|
-| `src/scripts/detect_hallucinations.py` | Сканирует output/*.md, флагирует плохие страницы (эвристики + gemma) |
-| `src/scripts/clear_bad_cache.py` | Удаляет плохие страницы из кэша — pipeline перегенерирует их при следующем запуске |
+| Команда / скрипт | Назначение |
+|------------------|-----------|
+| `pdf-to-md detect [FILES...]` | Сканирует Markdown, флагирует плохие страницы (эвристики + опциональная gemma) |
+| `pdf-to-md clear-cache` | Удаляет плохие страницы из кэша — pipeline перегенерирует их при следующем запуске |
 | `src/scripts/test_prompts.py` | A/B тест промптов на фиксированном наборе страниц |
 | `src/scripts/ab_test_ocr.py` | A/B тест OCR hint (with vs without) на 30 страницах |
 
