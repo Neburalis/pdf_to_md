@@ -1,0 +1,27 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Модели
+models/
+*.gguf
+
+# Входные / выходные данные
+pdf/
+output/
+
+# Кэш pipeline
+.pdf_to_md_cache/
+
+# Логи
+logs/
+*.log
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db
