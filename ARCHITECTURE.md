@@ -32,6 +32,8 @@ pdf_to_md/
 ├── src/pdf_to_md/
 │   ├── __main__.py    # точка входа: python -m pdf_to_md
 │   ├── cli.py         # argparse + валидация путей к GGUF
+│   ├── hallucinations.py # эвристики + gemma-проверка Markdown
+│   ├── cache_quality.py  # эвристики плохих страниц кэша
 │   ├── pipeline.py    # оркестратор фаз, tqdm прогресс-бары
 │   ├── renderer.py    # PDF → PNG (PyMuPDF), extract_page_text()
 │   ├── vision.py      # загрузка Qwen2-VL, page_to_md() → VisionResult
@@ -167,21 +169,19 @@ Stats CSV дополнительно включает строки:
 ## CLI
 
 ```
-pdf-to-md INPUT [OUTPUT]
-  --vision-model FILE    путь к GGUF vision-модели (обязателен)
-  --vision-mmproj FILE   путь к mmproj GGUF (обязателен)
-  --text-model FILE      путь к GGUF text-модели (обязателен без --no-clean)
-  --ollama-url URL       только для unload_ollama_models (default: http://localhost:11434)
-  --dpi N                DPI рендеринга (default: 200, range: 72-600)
-  --pages N-M            диапазон страниц (1-indexed)
-  --clean-chunk N        страниц в chunk (default: 10)
-  --clean-overlap K      overlap страниц (default: 2, < chunk)
-  --no-clean             пропустить фазу cleaning
-  --force                перезаписать output
-  --cache-dir DIR        (default: .pdf_to_md_cache)
-  --log-dir DIR          (default: <output-dir>/logs)
-  --save-images DIR      сохранить PNG страниц после рендера
+pdf-to-md convert INPUT [OUTPUT] [options]
+pdf-to-md detect [FILES...] [--text-model FILE] [--report FILE] [--no-gemma]
+pdf-to-md clear-cache [--cache-dir DIR]
+pdf-to-md llm-help
 ```
+
+`convert` сохраняет аргументы прежнего основного CLI:
+
+- `--vision-model FILE`, `--vision-mmproj FILE`
+- `--text-model FILE`, `--ollama-url URL`
+- `--dpi N`, `--pages N-M`
+- `--clean-chunk N`, `--clean-overlap K`, `--no-clean`
+- `--force`, `--cache-dir DIR`, `--log-dir DIR`, `--save-images DIR`
 
 ---
 
@@ -200,6 +200,16 @@ gguf>=0.19.0                  # утилиты (gguf-dump)
 ---
 
 ## Changelog
+
+### 2026-06-12 — CLI переведён на subcommands
+
+**Проблема:** единая команда `pdf-to-md INPUT [OUTPUT]` поддерживала только конвертацию, поэтому проверка галлюцинаций и очистка плохого кэша запускались отдельными скриптами с собственным разбором аргументов. Для LLM-агентов также не было компактной встроенной справки по моделям, железу и ограничениям.
+
+**Решение:** CLI разделён на `convert`, `detect`, `clear-cache` и `llm-help`. Аргументы и валидация прежнего основного flow перенесены в `convert`; quality tools перенесены из вспомогательных скриптов в пакетные модули `hallucinations.py` и `cache_quality.py`, а `detect --no-gemma` позволяет запускать только быстрые проверки.
+
+**Результат:** конвертация и служебные операции доступны через единую точку входа `python -m pdf_to_md`; `llm-help` не загружает pipeline или модели, а собранный wheel содержит всю логику quality tools.
+
+**Отвергнутые альтернативы:** сохранять отдельные точки запуска скриптов — дублирует CLI и не даёт общей discoverability; автоматически сохранять обратную совместимость с `pdf-to-md INPUT` — создаёт неоднозначный parser и откладывает явный переход на subcommands.
 
 ### 2026-06-11 — n_ctx=4096: DPI=200 без OOM
 

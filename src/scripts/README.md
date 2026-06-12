@@ -4,34 +4,6 @@
 
 ---
 
-## detect_hallucinations.py
-
-Сканирует `output/chast-*.md` и флагирует страницы с галлюцинациями.
-
-**Два прохода:**
-1. Быстрые эвристики (fake imgur URLs, английский текст, Unicode-математика без LaTeX, repetition)
-2. Gemma для страниц, прошедших эвристики
-
-**Результат:** `output/hallucination_report.txt` с постраничным списком и причиной.
-
-```powershell
-.venv\Scripts\python.exe src\scripts\detect_hallucinations.py
-```
-
----
-
-## clear_bad_cache.py
-
-Применяет те же эвристики **напрямую к файлам кэша** (`.pdf_to_md_cache/.../page_NNNN.md`) и удаляет плохие. Pipeline автоматически перегенерирует их при следующем запуске.
-
-Используется после `detect_hallucinations.py` для точечного исправления без полного перезапуска.
-
-```powershell
-.venv\Scripts\python.exe src\scripts\clear_bad_cache.py
-```
-
----
-
 ## test_prompts.py
 
 A/B тест нескольких вариантов vision-промпта на фиксированном наборе страниц.
